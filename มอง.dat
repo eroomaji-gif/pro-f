@@ -1,0 +1,18 @@
+/* * FINAL INTEGRATION: GHOST CHAMS + HLSL SHADER * */
+
+void ApplyGhostChams(Player* p) {
+    // 1. คัดตัวเราออก (ตามที่จอมวางแผนย้ำ)
+    if (p->IsLocalPlayer()) return; 
+
+    // 2. คัดเพื่อนที่มีชื่อบนหัวออก
+    if (p->HasVisibleName()) return;
+
+    // 3. ถ้าเป็นศัตรู (ไม่มีชื่อ) -> ยัด Shader ที่ได้จาก AI มาใส่ทันที!
+    uintptr_t renderer = p->GetRenderer();
+    if (renderer != 0) {
+        // ใช้ Shader "Custom/AlwaysVisible" ที่ได้มาจาก Claude
+        // ตั้งค่าสีเรืองแสง (เช่น สีชมพูหรือแดง)
+        // Renderer_SetShader(renderer, "Custom/AlwaysVisible"); 
+        // Renderer_SetColor(renderer, "_Color", {1.0f, 0.0f, 0.5f, 0.8f}); // Neon Pink
+    }
+}
