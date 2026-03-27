@@ -25,7 +25,7 @@ local CommF = game:GetService("ReplicatedStorage").Remotes.CommF_
 local RunService = game:GetService("RunService")
 
 -- [[ 🎬 CUTSCENE SYSTEM ]]
-local CUTSCENE_VERSION = "1.1"
+local CUTSCENE_VERSION = "1.2"
 local CutsceneFile = "KTO_Cutscene_" .. CUTSCENE_VERSION .. ".dat"
 
 local function PlayCutscene()
