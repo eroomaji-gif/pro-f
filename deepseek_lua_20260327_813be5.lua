@@ -1,0 +1,887 @@
+-- [[ 🛡️ KTO HUB V160.2.10 | MAZDA FULL BUTTONS + LAYER FLIP 🛡️ ]]
+-- [[ 🔒 STATUS: EVERYTHING RESTORED | DEEP HOOK INTEGRATED 🔒 ]]
+-- [[ ✅ FIXED: GhostModeX, Seat/Sofa, Eraser, UI Dragging, Wand Positioning ]]
+-- [[ ✅ ADDED: Cutscene text "จากซาดีน่า" (TikTok: @s.smel) ]]
+-- [[ ✅ FIXED: UI ซ้อนหลังจบ cutscene ]]
+-- [[ ✅ UPDATED: Magnet Fruit - ดูดผลทั่วแผนที่ 0.0001s ]]
+
+local OldUI = game:GetService("CoreGui"):FindFirstChild("KTO_FIX_V160")
+if OldUI then
+    _G.Settings = nil
+    _G.IsCollecting = false
+    _G.MazdaAI = false
+    OldUI:Destroy()
+    task.wait(0.1)
+end
+
+local Asset_ID = "103602607053877"
+local CoreGui = game:GetService("CoreGui")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local LP = game.Players.LocalPlayer
+local CommF = game:GetService("ReplicatedStorage").Remotes.CommF_
+local RunService = game:GetService("RunService")
+
+-- [[ 🎬 CUTSCENE SYSTEM ]]
+local CUTSCENE_VERSION = "1.1"
+local CutsceneFile = "KTO_Cutscene_" .. CUTSCENE_VERSION .. ".dat"
+
+local function PlayCutscene()
+    repeat task.wait() until LP.Character
+    repeat task.wait() until LP.Character:FindFirstChild("HumanoidRootPart")
+    repeat task.wait() until LP.Character:FindFirstChild("Humanoid")
+    
+    local char = LP.Character
+    local hum = char:FindFirstChild("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart")
+    local camera = workspace.CurrentCamera
+    
+    if not hum or not root then
+        task.wait(1)
+        return PlayCutscene()
+    end
+
+    local oldCamType = camera.CameraType
+    camera.CameraType = Enum.CameraType.Scriptable
+    game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+
+    local blackGui = Instance.new("ScreenGui", CoreGui)
+    blackGui.Name = "KTO_Cutscene"
+    blackGui.IgnoreGuiInset = true
+    blackGui.DisplayOrder = 999
+    blackGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    local black = Instance.new("Frame", blackGui)
+    black.Size = UDim2.new(1,0,1,0)
+    black.BackgroundColor3 = Color3.new(0,0,0)
+    black.BorderSizePixel = 0
+    black.ZIndex = 1
+
+    local light = Instance.new("SpotLight", root)
+    light.Brightness = 5
+    light.Range = 20
+    light.Angle = 45
+    light.Face = Enum.NormalId.Top
+    light.Color = Color3.fromRGB(255, 220, 150)
+
+    local startPos = root.Position
+    camera.CFrame = CFrame.new(startPos + Vector3.new(0, 3, 12), startPos + Vector3.new(0, 2, 0))
+
+    local targetPos = root.Position + Vector3.new(0, 0, -5)
+    hum:MoveTo(targetPos)
+    task.wait(2)
+
+    local throne = Instance.new("Part", workspace)
+    throne.Name = "KTO_Throne_Local"
+    throne.Size = Vector3.new(4, 5, 4)
+    throne.Color = Color3.fromRGB(255, 215, 0)
+    throne.Material = Enum.Material.Neon
+    throne.Anchored = true
+    throne.CanCollide = false
+    local thronePos = targetPos + Vector3.new(0, -5, -3)
+    throne.Position = thronePos
+
+    local riseGoal = thronePos + Vector3.new(0, 5, 0)
+    local riseInfo = TweenInfo.new(1.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    TweenService:Create(throne, riseInfo, {Position = riseGoal}):Play()
+
+    local seat = Instance.new("Seat", throne)
+    seat.Size = Vector3.new(3, 0.5, 3)
+    seat.Position = riseGoal + Vector3.new(0, 2.5, 0)
+    seat.Anchored = true
+    seat.CanCollide = true
+    seat.Transparency = 1
+
+    task.wait(1.5)
+    hum:MoveTo(seat.Position)
+    task.wait(2)
+
+    local mainText = Instance.new("TextLabel", blackGui)
+    mainText.Size = UDim2.new(0, 500, 0, 70)
+    mainText.Position = UDim2.new(0.5, -250, 0.6, 0)
+    mainText.Text = "จากซาดีน่า"
+    mainText.TextColor3 = Color3.fromRGB(255, 215, 0)
+    mainText.TextScaled = true
+    mainText.BackgroundTransparency = 1
+    mainText.Font = Enum.Font.GothamBold
+    mainText.ZIndex = 10
+    mainText.TextTransparency = 1
+
+    local subText = Instance.new("TextLabel", blackGui)
+    subText.Size = UDim2.new(0, 400, 0, 40)
+    subText.Position = UDim2.new(0.5, -200, 0.7, 0)
+    subText.Text = "TikTok: @s.smel"
+    subText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    subText.TextScaled = true
+    subText.BackgroundTransparency = 1
+    subText.Font = Enum.Font.SourceSansBold
+    subText.ZIndex = 10
+    subText.TextTransparency = 1
+
+    TweenService:Create(mainText, TweenInfo.new(0.8), {TextTransparency = 0}):Play()
+    TweenService:Create(subText, TweenInfo.new(0.8), {TextTransparency = 0}):Play()
+    
+    task.wait(2)
+    
+    TweenService:Create(mainText, TweenInfo.new(0.8), {TextTransparency = 1}):Play()
+    TweenService:Create(subText, TweenInfo.new(0.8), {TextTransparency = 1}):Play()
+    
+    task.wait(0.8)
+    mainText:Destroy()
+    subText:Destroy()
+
+    TweenService:Create(camera, TweenInfo.new(1.5), {
+        CFrame = CFrame.new(root.Position + Vector3.new(0, 5, 18), root.Position + Vector3.new(0, 2, 0))
+    }):Play()
+    task.wait(1.5)
+
+    TweenService:Create(black, TweenInfo.new(1.5), {BackgroundTransparency = 1}):Play()
+    task.wait(1.5)
+
+    camera.CameraType = oldCamType
+    game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.All, true)
+    light:Destroy()
+    throne:Destroy()
+    blackGui:Destroy()
+
+    pcall(function() writefile(CutsceneFile, "played") end)
+end
+
+if not isfile(CutsceneFile) then
+    task.spawn(PlayCutscene)
+    task.wait(12)
+end
+
+local FileName = "KTO_V160_Config.json"
+_G.Settings = { 
+    AntiAFK = true, 
+    FruitESP = false, 
+    MagnetFruit = false, 
+    TPCollect = false, 
+    AutoStore = false, 
+    FixedPos = false, 
+    MazdaAI = false, 
+    SelectedWeapon = "Melee",
+    AutoFarm = false,
+    WalkSpeed = 16,
+    JumpPower = 50,
+    GhostModeX = false
+}
+_G.IsCollecting = false 
+local LockedPos = nil
+local MagnetFruits = {}
+
+local function SaveConfig()
+    pcall(function() writefile(FileName, HttpService:JSONEncode(_G.Settings)) end)
+end
+
+local function LoadConfig()
+    if isfile(FileName) then
+        local success, data = pcall(function() return HttpService:JSONDecode(readfile(FileName)) end)
+        if success then for k, v in pairs(data) do _G.Settings[k] = v end end
+    end
+end
+LoadConfig()
+
+local function Mazda_Equip(Name)
+    for _, v in pairs(LP.Backpack:GetChildren()) do
+        if v.Name:lower():find(Name:lower()) then
+            LP.Character.Humanoid:EquipTool(v)
+            return true
+        end
+    end
+    return false
+end
+
+local function FindFruit()
+    local function scanChildren(parent)
+        for _, v in pairs(parent:GetChildren()) do
+            if v:IsA("Tool") then
+                local name = v.Name:lower()
+                if name:find("fruit") or name:find("ผล") or name:find("devil") or name:find("logia") or name:find("zoan") or name:find("paramecia") then
+                    local model = v:FindFirstAncestorOfClass("Model")
+                    if not model or not model:FindFirstChildOfClass("Humanoid") then
+                        return v
+                    end
+                end
+            end
+            if v:IsA("Folder") or v:IsA("Model") then
+                local found = scanChildren(v)
+                if found then return found end
+            end
+        end
+        return nil
+    end
+    return scanChildren(game.Workspace)
+end
+
+local function GetAllFruits()
+    local fruits = {}
+    local function scanChildren(parent)
+        for _, v in pairs(parent:GetChildren()) do
+            if v:IsA("Tool") then
+                local name = v.Name:lower()
+                if name:find("fruit") or name:find("ผล") or name:find("devil") or name:find("logia") or name:find("zoan") or name:find("paramecia") then
+                    local model = v:FindFirstAncestorOfClass("Model")
+                    if not model or not model:FindFirstChildOfClass("Humanoid") then
+                        table.insert(fruits, v)
+                    end
+                end
+            end
+            if v:IsA("Folder") or v:IsA("Model") then
+                scanChildren(v)
+            end
+        end
+    end
+    scanChildren(game.Workspace)
+    return fruits
+end
+
+local function Mazda_GoofyWalk(root, hum)
+    local rayCastParams = RaycastParams.new()
+    rayCastParams.FilterType = Enum.RaycastFilterType.Exclude
+    rayCastParams.FilterDescendantsInstances = {LP.Character}
+
+    local landed = false
+    local attempts = 0
+    while not landed and attempts < 10 do
+        attempts = attempts + 1
+        local rx = math.random(-8000, 8000)
+        local rz = math.random(-8000, 8000)
+        local hit = workspace:Raycast(Vector3.new(rx, 500, rz), Vector3.new(0, -1000, 0), rayCastParams)
+        if hit and hit.Instance then
+            local mat = hit.Material
+            local nam = hit.Instance.Name:lower()
+            local isWater = mat == Enum.Material.Water
+                         or nam:find("water") or nam:find("sea") or nam:find("ocean")
+            if not isWater then
+                CommF:InvokeServer("WorldWarp", hit.Position + Vector3.new(0, 5, 0))
+                task.wait(1.5)
+                for i = 1, math.random(3, 6) do
+                    if not _G.Settings.MazdaAI then break end
+                    if FindFruit() then break end
+                    hum:MoveTo(hit.Position + Vector3.new(math.random(-50, 50), 0, math.random(-50, 50)))
+                    task.wait(math.random(2, 4))
+                end
+                landed = true
+            end
+        end
+    end
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if _G.Settings.MazdaAI then
+            local char = LP.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if hum and root then
+                if hum.Sit then hum.Jump = true end
+
+                local fruit = FindFruit()
+                if fruit then
+                    local h = fruit:FindFirstChild("Handle")
+                    if h then
+                        CommF:InvokeServer("WorldWarp", h.Position + Vector3.new(0, 3, 0))
+                        task.wait(0.5)
+                        root.CFrame = CFrame.new(h.Position + Vector3.new(0, 3, 0))
+                        firetouchinterest(root, h, 0)
+                        task.wait(0.1)
+                        firetouchinterest(root, h, 1)
+                        task.wait(0.3)
+                        CommF:InvokeServer("StoreFruit", fruit.Name)
+                        task.wait(0.5)
+                    end
+                else
+                    Mazda_GoofyWalk(root, hum)
+                end
+            end
+        end
+    end
+end)
+
+function Notify(msg)
+    local n = Instance.new("Frame", CoreGui:FindFirstChild("KTO_FIX_V160") or CoreGui)
+    n.Size = UDim2.new(0,300,0,100); n.Position = UDim2.new(0.5,-150,0.5,-50); n.BackgroundColor3 = Color3.new(0,0,0); n.ZIndex = 100
+    local t = Instance.new("TextLabel", n); t.Size = UDim2.new(1,0,1,0); t.TextColor3 = Color3.new(1,0,0); t.Text = msg; t.TextSize = 18; t.BackgroundTransparency = 1; t.ZIndex = 101
+    Instance.new("UIStroke", n).Color = Color3.fromRGB(255,0,0)
+    task.wait(3); n:Destroy()
+end
+
+local function SmartHop()
+    Notify("🚀 กำลังสุ่มหาเซิร์ฟเวอร์ใหม่...")
+    local PlaceID = game.PlaceId
+    local JobID = game.JobId
+    local Servers = {}
+    local success, result = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. PlaceID .. "/servers/Public?sortOrder=Asc&limit=100"))
+    end)
+    if success and result and result.data then
+        for _, v in pairs(result.data) do
+            if v.id ~= JobID and v.playing < v.maxPlayers then table.insert(Servers, v.id) end
+        end
+    end
+    if #Servers > 0 then TeleportService:TeleportToPlaceInstance(PlaceID, Servers[math.random(1, #Servers)], LP)
+    else Notify("❌ ไม่พบเซิร์ฟเวอร์อื่น") end
+end
+
+local sg = Instance.new("ScreenGui", CoreGui); sg.Name = "KTO_FIX_V160"; sg.IgnoreGuiInset = true; sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local Hero = Instance.new("ImageButton", sg)
+Hero.Size = UDim2.new(0, 0, 0, 0); Hero.Position = UDim2.new(0.5, 0, 0.5, 0); Hero.BackgroundTransparency = 1; Hero.Image = "https://www.roblox.com/asset-thumbnail/image?assetId="..Asset_ID.."&width=420&height=420&format=png"; Hero.ScaleType = Enum.ScaleType.Fit; Hero.ZIndex = 5; Hero.Visible = false
+
+local LeftScroll = Instance.new("ScrollingFrame", Hero)
+LeftScroll.Name = "LeftScroll"; LeftScroll.Size = UDim2.new(0, 250, 0, 350); LeftScroll.Position = UDim2.new(0, -150, 0.5, -175); LeftScroll.BackgroundTransparency = 1; LeftScroll.CanvasSize = UDim2.new(0, 0, 2, 0); LeftScroll.ScrollBarThickness = 0; LeftScroll.ZIndex = 6
+
+local RightScroll = Instance.new("ScrollingFrame", Hero)
+RightScroll.Name = "RightScroll"; RightScroll.Size = UDim2.new(0, 250, 0, 350); RightScroll.Position = UDim2.new(0, 380, 0.5, -175); RightScroll.BackgroundTransparency = 1; RightScroll.CanvasSize = UDim2.new(0, 0, 3, 0); RightScroll.ScrollBarThickness = 0; RightScroll.ZIndex = 6
+
+local Mini = Instance.new("ImageButton", sg)
+Mini.Size = UDim2.new(0, 90, 0, 140); Mini.Position = UDim2.new(0.5, -45, 0.5, -70); Mini.AnchorPoint = Vector2.new(0.5, 0.5); Mini.BackgroundTransparency = 1; Mini.Image = Hero.Image; Mini.ScaleType = Enum.ScaleType.Fit; Mini.ZIndex = 10
+
+local function BlackHoleEffect()
+    local info = TweenInfo.new(1.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+    local tween = TweenService:Create(Mini, info, {Rotation = 360, Size = UDim2.new(0, 400, 0, 600), ImageTransparency = 1})
+    tween:Play()
+    tween.Completed:Connect(function()
+        Mini.Visible = false; Mini.Position = UDim2.new(0, 50, 0.5, -70); Mini.Rotation = 0; Mini.Size = UDim2.new(0, 90, 0, 140); Mini.ImageTransparency = 0
+        Hero.Visible = true; TweenService:Create(Hero, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 700), Position = UDim2.new(0.5, -225, 0.5, -350)}):Play()
+    end)
+end
+
+local function MakeDraggable(obj)
+    local dragging, dragStart, startPos
+    obj.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true dragStart = input.Position startPos = obj.Position end
+    end)
+    obj.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    UIS.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
+end
+MakeDraggable(Hero); MakeDraggable(Mini)
+
+Hero.MouseButton1Click:Connect(function() Hero.Visible = false Mini.Visible = true end)
+Mini.MouseButton1Click:Connect(function() Mini.Visible = false Hero.Visible = true end)
+
+local Pages = { Home = {}, Fruit = {}, Settings = {}, Bug = {}, Farm = {}, Toy = {} }
+local SidebarBtns = {}
+
+local function CreateBtn(side, yOffset, txt, clr, cb, category)
+    local parent = (side == "left" and not category) and LeftScroll or RightScroll
+    local b = Instance.new("TextButton", parent)
+    b.Size = UDim2.new(0, 170, 0, 38); b.Position = UDim2.new(0, 30, 0, yOffset + 150); b.BackgroundColor3 = Color3.fromRGB(25, 25, 25); b.Text = txt; b.TextColor3 = Color3.new(1, 1, 1); b.Font = Enum.Font.SourceSansBold; b.TextSize = 20; b.ZIndex = 7; b.ClipsDescendants = true
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+    Instance.new("UIStroke", b).Color = clr
+    b.MouseButton1Click:Connect(function() cb(b) SaveConfig() end)
+    if category then table.insert(Pages[category], b); b.Visible = false 
+    else b.BackgroundTransparency = 1; b.TextTransparency = 1; table.insert(SidebarBtns, b) end
+    return b
+end
+
+local function WaterfallEffect()
+    for i, btn in ipairs(SidebarBtns) do
+        local targetPos = btn.Position; btn.Position = targetPos - UDim2.new(0,0,0,30)
+        task.wait(0.1); TweenService:Create(btn, TweenInfo.new(0.4), {Position = targetPos, BackgroundTransparency = 0, TextTransparency = 0}):Play()
+    end
+end
+
+local function ShowPage(name)
+    for _, cat in pairs(Pages) do for _, btn in pairs(cat) do btn.Visible = false end end
+    for _, btn in pairs(Pages[name]) do 
+        btn.Visible = true; local s = btn.Size; btn.Size = UDim2.new(0, 170, 0, 0); TweenService:Create(btn, TweenInfo.new(0.4, Enum.EasingStyle.Back), {Size = s}):Play()
+    end
+end
+
+CreateBtn("left", -120, "🏠 หน้าหลัก", Color3.fromRGB(0, 120, 215), function() ShowPage("Home") end)
+CreateBtn("left", -75, "🚜 ฟาร์ม", Color3.fromRGB(255, 0, 0), function() ShowPage("Farm") end)
+CreateBtn("left", -30, "🍎 ผลไม้", Color3.fromRGB(200, 80, 0), function() ShowPage("Fruit") end)
+CreateBtn("left", 15, "⚙️ ตั้งค่า", Color3.fromRGB(80, 80, 80), function() ShowPage("Settings") end)
+CreateBtn("left", 60, "🐛 แจ้งบัค", Color3.fromRGB(180, 0, 0), function() ShowPage("Bug") end)
+CreateBtn("left", 105, "🎭 ลูกเล่น", Color3.fromRGB(255, 0, 255), function() ShowPage("Toy") end)
+
+local DropOpen = false
+local WeaponButtons = {}
+local DropMain = CreateBtn("right", -120, "🔽 อาวุธ: " .. _G.Settings.SelectedWeapon, Color3.fromRGB(255, 200, 0), function() end, "Farm")
+DropMain.ZIndex = 15
+
+local FarmBtn = CreateBtn("right", -75, "🚜 ฟาร์ม: " .. (_G.Settings.AutoFarm and "เปิด" or "ปิด"), Color3.fromRGB(255, 0, 0), function(self)
+    _G.Settings.AutoFarm = not _G.Settings.AutoFarm
+    self.Text = "🚜 ฟาร์ม: " .. (_G.Settings.AutoFarm and "เปิด" or "ปิด")
+    Notify(_G.Settings.AutoFarm and "🚀 เริ่มระบบฟาร์ม!" or "🛑 หยุดฟาร์มแล้ว")
+    SaveConfig()
+end, "Farm")
+
+local weapons = {"Melee", "Sword", "Gun", "Fruit"}
+for i, w in ipairs(weapons) do
+    local wb = CreateBtn("right", -120 + (i * 38), "↳ " .. w, Color3.new(1, 1, 1), function()
+        _G.Settings.SelectedWeapon = w
+        DropMain.Text = "🔽 อาวุธ: " .. w
+        DropOpen = false
+        for _, b in pairs(WeaponButtons) do b.Visible = false end
+        SaveConfig()
+    end, "Farm")
+    wb.Size = UDim2.new(0, 150, 0, 32); wb.Position = UDim2.new(0, 45, 0, (-120 + (i * 38)) + 150); wb.Visible = false; wb.ZIndex = 20
+    table.insert(WeaponButtons, wb)
+end
+
+DropMain.MouseButton1Click:Connect(function()
+    DropOpen = not DropOpen
+    for _, b in pairs(WeaponButtons) do b.Visible = DropOpen end
+end)
+
+CreateBtn("right", -40, "🌐 ย้ายเซิร์ฟ", Color3.fromRGB(0, 120, 215), function() SmartHop() end, "Home")
+CreateBtn("right", 5, "⚠️ ปิดเซิร์ฟ", Color3.fromRGB(200, 0, 0), function() game:Shutdown() end, "Home")
+
+CreateBtn("right", -110, "🎲 สุ่มผลไม้", Color3.fromRGB(255, 200, 0), function() CommF:InvokeServer("Cousin", "Buy") end, "Fruit")
+CreateBtn("right", -65, "♻️ ดรอปผล", Color3.fromRGB(200, 0, 0), function()
+    for _, v in pairs(LP.Backpack:GetChildren()) do if v:IsA("Tool") and (v.Name:find("Fruit") or v.Name:find("ผล")) then v.Parent = LP.Character task.wait(0.01) v.Parent = game.Workspace end end
+end, "Fruit")
+CreateBtn("right", -20, "👁️ ESP: " .. (_G.Settings.FruitESP and "เปิด" or "ปิด"), Color3.fromRGB(255, 255, 255), function(self) _G.Settings.FruitESP = not _G.Settings.FruitESP self.Text = "👁️ ESP: " .. (_G.Settings.FruitESP and "เปิด" or "ปิด") end, "Fruit")
+CreateBtn("right", 25, "🧲 Magnet: " .. (_G.Settings.MagnetFruit and "เปิด" or "ปิด"), Color3.fromRGB(0, 255, 150), function(self) _G.Settings.MagnetFruit = not _G.Settings.MagnetFruit self.Text = "🧲 Magnet: " .. (_G.Settings.MagnetFruit and "เปิด" or "ปิด") end, "Fruit")
+CreateBtn("right", 70, "🚀 TP Collect: " .. (_G.Settings.TPCollect and "เปิด" or "ปิด"), Color3.fromRGB(255, 50, 150), function(self) _G.Settings.TPCollect = not _G.Settings.TPCollect self.Text = "🚀 TP Collect: " .. (_G.Settings.TPCollect and "เปิด" or "ปิด") end, "Fruit")
+
+CreateBtn("right", -110, "🧺 Auto Store: " .. (_G.Settings.AutoStore and "เปิด" or "ปิด"), Color3.fromRGB(0, 180, 255), function(self) _G.Settings.AutoStore = not _G.Settings.AutoStore self.Text = "🧺 Auto Store: " .. (_G.Settings.AutoStore and "เปิด" or "ปิด") end, "Settings")
+CreateBtn("right", -65, "🔒 Fixed Pos: " .. (_G.Settings.FixedPos and "เปิด" or "ปิด"), Color3.fromRGB(0, 255, 255), function(self) 
+    _G.Settings.FixedPos = not _G.Settings.FixedPos 
+    self.Text = "🔒 Fixed Pos: " .. (_G.Settings.FixedPos and "เปิด" or "ปิด")
+    if not _G.Settings.FixedPos then
+        local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+        if root then root.Anchored = false end
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then LP.Character.Humanoid.PlatformStand = false end
+        LockedPos = nil
+    else
+        local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+        if root then LockedPos = root.CFrame Notify("🔒 ล็อคพิกัดนิ่งสนิท") end
+    end
+end, "Settings")
+CreateBtn("right", -20, "🤪 AI เอ๋อปนเมา: " .. (_G.Settings.MazdaAI and "เปิด" or "ปิด"), Color3.fromRGB(255, 100, 255), function(self) 
+    _G.Settings.MazdaAI = not _G.Settings.MazdaAI 
+    self.Text = "🤪 AI เอ๋อปนเมา: " .. (_G.Settings.MazdaAI and "เปิด" or "ปิด")
+end, "Settings")
+
+CreateBtn("right", -110, "🐛 แจ้งบัค", Color3.fromRGB(180, 0, 0), function() Notify("🚨 TikTok: @s.smel") end, "Bug")
+CreateBtn("right", -65, "📱 TikTok", Color3.fromRGB(0, 0, 0), function() setclipboard("https://www.tiktok.com/@s.smel") Notify("คัดลอกลิงก์แล้ว!") end, "Bug")
+
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if _G.Settings.AutoFarm then
+            pcall(function()
+                local weaponName = _G.Settings.SelectedWeapon
+                local tool = nil
+                if weaponName == "Melee" then
+                    for _, v in pairs(LP.Backpack:GetChildren()) do if v:IsA("Tool") and v.ToolTip == "Melee" then tool = v break end end
+                else
+                    for _, v in pairs(LP.Backpack:GetChildren()) do if v:IsA("Tool") and v.ToolTip == weaponName then tool = v break end end
+                end
+                if tool then LP.Character.Humanoid:EquipTool(tool) end
+            end)
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        pcall(function()
+            local char = LP.Character
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if not root or not hum then return end
+            if _G.Settings.FixedPos and LockedPos then
+                root.Anchored = true
+                root.CFrame = LockedPos
+            else
+                root.Anchored = false
+                hum.PlatformStand = false
+                local upVec = root.CFrame.UpVector
+                if upVec.Y < 0.5 then
+                    root.CFrame = CFrame.new(root.Position)
+                end
+            end
+        end)
+    end
+end)
+
+local CollectingCount = 0
+
+-- [[ ระบบดูดผลทั่วแผนที่ 0.0001s ]]
+local function GlobalMagnetFruit()
+    local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    local allFruits = GetAllFruits()
+    for _, fruit in pairs(allFruits) do
+        local h = fruit:FindFirstChild("Handle")
+        if h then
+            local distance = (root.Position - h.Position).Magnitude
+            -- ดูดได้ทั่วแผนที่ ไม่จำกัดระยะ
+            pcall(function()
+                -- ใช้ CFrame ดูดผลไม้มาหา player ทันที 0.0001s
+                h.CFrame = root.CFrame * CFrame.new(0, 2, 0)
+                firetouchinterest(root, h, 0)
+                firetouchinterest(root, h, 1)
+            end)
+        end
+    end
+end
+
+local function HandleFruit(v)
+    if not (v:IsA("Tool") and (v.Name:find("Fruit") or v.Name:find("ผล"))) then return end
+    local h = v:FindFirstChild("Handle")
+    if not h then
+        task.spawn(function()
+            h = v:WaitForChild("Handle", 3)
+            if not h then return end
+            HandleFruit(v)
+        end)
+        return
+    end
+    if h:FindFirstChild("FruitESP_Active") then return end
+    local tag = Instance.new("BoolValue", h); tag.Name = "FruitESP_Active"
+
+    task.spawn(function()
+        local bg = Instance.new("BillboardGui", h)
+        bg.Name = "FruitESP"; bg.Size = UDim2.new(0, 150, 0, 50); bg.AlwaysOnTop = true; bg.Adornee = h
+        local tl = Instance.new("TextLabel", bg)
+        tl.Size = UDim2.new(1, 0, 1, 0); tl.BackgroundTransparency = 1
+        tl.TextColor3 = Color3.new(1, 1, 1); tl.TextSize = 15
+        tl.Font = Enum.Font.SourceSansBold; tl.Text = "🍎 " .. v.Name
+
+        while v.Parent ~= nil and h.Parent ~= nil do
+            bg.Enabled = _G.Settings.FruitESP
+            
+            if _G.Settings.MagnetFruit then
+                local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                if root then
+                    -- ดูดผลไม้มาหา player ทันที
+                    pcall(function()
+                        h.CFrame = root.CFrame * CFrame.new(0, 2, 0)
+                        firetouchinterest(root, h, 0)
+                        firetouchinterest(root, h, 1)
+                    end)
+                end
+            end
+            
+            if _G.Settings.TPCollect then
+                local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                if root then
+                    local char = LP.Character
+                    local oldPos = root.CFrame
+                    root.CFrame = CFrame.new(h.Position + Vector3.new(0, 2, 0))
+                    firetouchinterest(root, h, 0)
+                    firetouchinterest(root, h, 1)
+                    task.wait(0.05)
+                    if root and root.Parent then
+                        root.CFrame = CFrame.new(oldPos.Position)
+                    end
+                end
+            end
+            
+            task.wait(0.0001)
+        end
+        if bg and bg.Parent then bg:Destroy() end
+        if tag and tag.Parent then tag:Destroy() end
+    end)
+end
+
+local function DeepHook(parent)
+    parent.ChildAdded:Connect(function(child)
+        HandleFruit(child)
+        if child:IsA("Folder") or child:IsA("Model") or child:IsA("Tool") then
+            task.wait(0.1)
+            DeepHook(child)
+        end
+    end)
+    for _, v in pairs(parent:GetChildren()) do
+        if v:IsA("Folder") or v:IsA("Model") or v:IsA("Tool") then
+            task.spawn(function() DeepHook(v) end)
+        end
+        HandleFruit(v)
+    end
+end
+task.spawn(function() DeepHook(game.Workspace) end)
+
+-- [[ ระบบดูดผลทั่วแผนที่ทำงานแยก thread ]]
+task.spawn(function()
+    while true do
+        task.wait(0.0001)
+        if _G.Settings.MagnetFruit then
+            pcall(GlobalMagnetFruit)
+        end
+    end
+end)
+
+task.spawn(function()
+    BlackHoleEffect()
+    task.wait(1.5)
+    WaterfallEffect()
+    ShowPage("Home")
+end)
+
+LP.Chatted:Connect(function(msg)
+    if msg:lower() == "/time" then
+        Notify(string.format("⏰ เวลา: %s", os.date("%H:%M:%S")))
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.5) do
+        pcall(function()
+            local hum = LP.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                if hum.WalkSpeed ~= _G.Settings.WalkSpeed then hum.WalkSpeed = _G.Settings.WalkSpeed end
+                if hum.JumpPower ~= _G.Settings.JumpPower then hum.JumpPower = _G.Settings.JumpPower end
+                if not hum.UseJumpPower then hum.UseJumpPower = true end
+            end
+            
+            if _G.Settings.GhostModeX then
+                CommF:InvokeServer("SubProperty", {["Target"] = "Parallel Escape", ["Property"] = "Start"})
+            end
+            
+            if _G.Settings.AutoStore then
+                for _, v in pairs(LP.Backpack:GetChildren()) do 
+                    if v:IsA("Tool") and (v.Name:find("Fruit") or v.Name:find("ผล")) then 
+                        CommF:InvokeServer("StoreFruit", v.Name) 
+                    end 
+                end
+            end
+        end)
+    end
+end)
+
+-- [[ 👑 MAZDA EMPIRE V7: MINI SQUARE & DRAGGABLE EDITION 👑 ]]
+-- [[ ✅ FIXED: Seat/Sofa, Eraser, Wand Positioning, UI Dragging ]]
+
+task.spawn(function()
+    local Mouse = LP:GetMouse()
+    
+    local CurrentItem = "Block_Brick"
+    local GridSize = 4
+    local LocalObjects = {}
+
+    local function SnapToGrid(pos)
+        return Vector3.new(
+            math.floor(pos.X / GridSize + 0.5) * GridSize,
+            math.floor(pos.Y / GridSize + 0.5) * GridSize,
+            math.floor(pos.Z / GridSize + 0.5) * GridSize
+        )
+    end
+
+    local function CreateObject(itemType, pos)
+        local id = "Local_" .. os.clock()
+        local Obj
+        
+        if itemType:find("Block") or itemType == "Bush" then
+            Obj = Instance.new("Part", workspace)
+            Obj.Name = "MazdaObj_"..id
+            Obj.Anchored = true
+            Obj.Position = pos
+            Obj.Size = Vector3.new(GridSize, GridSize, GridSize)
+            if itemType == "Block_Brick" then 
+                Obj.Material = "Brick"
+                Obj.Color = Color3.fromRGB(163, 162, 165)
+            elseif itemType == "Block_Wood" then 
+                Obj.Material = "Wood"
+                Obj.Color = Color3.fromRGB(100, 70, 40)
+            elseif itemType == "Block_Glass" then 
+                Obj.Material = "Glass"
+                Obj.Transparency = 0.6
+                Obj.Color = Color3.fromRGB(200, 240, 255)
+            elseif itemType == "Block_Neon" then 
+                Obj.Material = "Neon"
+                Obj.Color = Color3.new(1,1,1)
+            elseif itemType == "Bush" then 
+                Obj.Material = "Grass"
+                Obj.Color = Color3.fromRGB(30, 120, 30)
+                Obj.Shape = "Ball"
+            end
+            
+        elseif itemType == "Seat" then
+            Obj = Instance.new("Seat", workspace)
+            Obj.Name = "MazdaObj_"..id
+            Obj.Anchored = true
+            Obj.Position = pos
+            Obj.Size = Vector3.new(GridSize, GridSize, GridSize)
+            Obj.Transparency = 0
+            
+        elseif itemType == "Sofa" then
+            Obj = Instance.new("Part", workspace)
+            Obj.Name = "MazdaObj_"..id
+            Obj.Anchored = true
+            Obj.Position = pos
+            Obj.Size = Vector3.new(GridSize * 1.5, GridSize, GridSize * 2)
+            Obj.Color = Color3.fromRGB(150, 0, 0)
+            local seat = Instance.new("Seat", Obj)
+            seat.Size = Obj.Size
+            seat.Transparency = 1
+            seat.Anchored = true
+            
+        elseif itemType == "Ladder" then
+            Obj = Instance.new("TrussPart", workspace)
+            Obj.Name = "MazdaObj_"..id
+            Obj.Anchored = true
+            Obj.Position = pos
+            Obj.Size = Vector3.new(GridSize, GridSize, GridSize)
+            
+        elseif itemType == "Flag" then
+            Obj = Instance.new("Part", workspace)
+            Obj.Name = "MazdaObj_"..id
+            Obj.Size = Vector3.new(0.5, 12, 0.5)
+            Obj.Color = Color3.fromRGB(255,215,0)
+            Obj.Material = "Neon"
+            Obj.Anchored = true
+            Obj.Position = pos
+            local Cloth = Instance.new("Part", Obj)
+            Cloth.Size = Vector3.new(6, 4, 0.1)
+            Cloth.Color = Color3.fromRGB(150,0,0)
+            Cloth.CFrame = Obj.CFrame * CFrame.new(3, 4, 0)
+            Cloth.Anchored = true
+            local bg = Instance.new("SurfaceGui", Cloth)
+            local tl = Instance.new("TextLabel", bg)
+            tl.Size = UDim2.new(1,0,1,0)
+            tl.Text = "KTO"
+            tl.TextColor3 = Color3.new(1,0.8,0)
+            tl.TextScaled = true
+            tl.BackgroundTransparency = 1
+        end
+        
+        if Obj then
+            Obj:SetAttribute("MazdaBuilt", true)
+            table.insert(LocalObjects, Obj)
+        end
+    end
+
+    local sgBuilder = Instance.new("ScreenGui", CoreGui)
+    sgBuilder.Name = "MazdaBuilder"
+    sgBuilder.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    local Frame = Instance.new("Frame", sgBuilder)
+    Frame.Size = UDim2.new(0, 180, 0, 350)
+    Frame.Position = UDim2.new(0.1, 60, 0.3, 0)
+    Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Frame.Visible = false
+    Instance.new("UICorner", Frame)
+
+    local Scroll = Instance.new("ScrollingFrame", Frame)
+    Scroll.Size = UDim2.new(1, -10, 1, -10)
+    Scroll.Position = UDim2.new(0, 5, 0, 5)
+    Scroll.BackgroundTransparency = 1
+    Scroll.CanvasSize = UDim2.new(0, 0, 0, 550)
+    Scroll.ScrollBarThickness = 4
+    Instance.new("UIListLayout", Scroll).Padding = UDim.new(0, 5)
+
+    local function AddBtn(txt, itype, clr)
+        local b = Instance.new("TextButton", Scroll)
+        b.Size = UDim2.new(0.95, 0, 0, 35)
+        b.Text = txt
+        b.BackgroundColor3 = clr or Color3.fromRGB(50, 50, 50)
+        b.TextColor3 = Color3.new(1, 1, 1)
+        Instance.new("UICorner", b)
+        b.MouseButton1Click:Connect(function() CurrentItem = itype end)
+    end
+
+    AddBtn("🧱 อิฐ", "Block_Brick")
+    AddBtn("🪵 ไม้", "Block_Wood", Color3.fromRGB(80, 50, 20))
+    AddBtn("💎 กระจก", "Block_Glass", Color3.fromRGB(100, 150, 200))
+    AddBtn("🪜 บันไดลิง", "Ladder")
+    AddBtn("🪑 เก้าอี้", "Seat")
+    AddBtn("🛋️ โซฟาแดง", "Sofa", Color3.fromRGB(150, 0, 0))
+    AddBtn("🌳 พุ่มไม้", "Bush", Color3.fromRGB(0, 100, 0))
+    AddBtn("✨ นีออน", "Block_Neon", Color3.fromRGB(180, 180, 180))
+    AddBtn("🚩 ธงทอง KTO", "Flag", Color3.fromRGB(200, 0, 0))
+    AddBtn("🧹 ยางลบ", "Eraser", Color3.fromRGB(120, 60, 0))
+    
+    local NukBtn = Instance.new("TextButton", Scroll)
+    NukBtn.Size = UDim2.new(0.95, 0, 0, 35)
+    NukBtn.Text = "☢️ ลบทั้งหมด"
+    NukBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    NukBtn.TextColor3 = Color3.new(1, 1, 1)
+    Instance.new("UICorner", NukBtn)
+    NukBtn.MouseButton1Click:Connect(function() 
+        for _, v in pairs(workspace:GetChildren()) do 
+            if v:GetAttribute("MazdaBuilt") then 
+                v:Destroy() 
+            end 
+        end 
+    end)
+
+    local Wand = Instance.new("Tool")
+    Wand.Name = "🪄 MAZDA BUILDER"
+    Wand.RequiresHandle = true
+    local H = Instance.new("Part", Wand)
+    H.Name = "Handle"
+    H.Size = Vector3.new(0.4, 4, 0.4)
+    H.Color = Color3.fromRGB(255,215,0)
+    H.Material = "Neon"
+    
+    Wand.Activated:Connect(function()
+        local target = Mouse.Target
+        local pos
+        
+        if target and target:GetAttribute("MazdaBuilt") then
+            local normal = Vector3.FromNormalId(Mouse.TargetSurface)
+            pos = target.Position + (normal * GridSize)
+        else
+            pos = SnapToGrid(Mouse.Hit.p + Vector3.new(0, GridSize/2, 0))
+        end
+        
+        local ray = Ray.new(pos + Vector3.new(0, 10, 0), Vector3.new(0, -20, 0))
+        local hit, hitPos = workspace:FindPartOnRay(ray, LP.Character)
+        if hit then
+            pos = hitPos + Vector3.new(0, GridSize/2, 0)
+        end
+        
+        if CurrentItem == "Eraser" then 
+            if target and target:GetAttribute("MazdaBuilt") then 
+                target:Destroy() 
+            end
+        else 
+            CreateObject(CurrentItem, pos) 
+        end
+    end)
+
+    local Toggle = Instance.new("TextButton", sgBuilder)
+    Toggle.Size = UDim2.new(0, 50, 0, 50)
+    Toggle.Position = UDim2.new(0.1, 0, 0.5, 0)
+    Toggle.Text = "🛠️"
+    Toggle.TextSize = 25
+    Toggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    Toggle.TextColor3 = Color3.new(1,1,1)
+    Toggle.ZIndex = 10
+    Instance.new("UICorner", Toggle).CornerRadius = UDim.new(0, 8)
+
+    local dragging, dragStart, startPos
+    Toggle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Toggle.Position
+            input.Changed:Connect(function() 
+                if input.UserInputState == Enum.UserInputState.End then 
+                    dragging = false 
+                end 
+            end)
+        end
+    end)
+    
+    UIS.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            Toggle.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            Frame.Position = UDim2.new(0, Toggle.Position.X.Offset + 60, 0, Toggle.Position.Y.Offset)
+        end
+    end)
+
+    Toggle.MouseButton1Click:Connect(function()
+        Frame.Visible = not Frame.Visible
+        Toggle.BackgroundColor3 = Frame.Visible and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(45, 45, 45)
+        Wand.Parent = Frame.Visible and LP.Backpack or nil
+    end)
+end)
