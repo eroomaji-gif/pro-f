@@ -46,9 +46,9 @@ local function PlayCutscene()
     local camera = workspace.CurrentCamera
     
     if not hum or not root then
-        task.wait(1)
-        return PlayCutscene()
-    end
+        repeat task.wait() until LP.Character
+repeat task.wait() until LP.Character:FindFirstChild("HumanoidRootPart")
+            
 
     local oldCamType = camera.CameraType
     camera.CameraType = Enum.CameraType.Scriptable
