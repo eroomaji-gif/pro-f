@@ -25,8 +25,13 @@ local CommF = game:GetService("ReplicatedStorage").Remotes.CommF_
 local RunService = game:GetService("RunService")
 
 -- [[ 🎬 CUTSCENE SYSTEM ]]
-local CUTSCENE_VERSION = "1.2"
-local CutsceneFile = "KTO_Cutscene_" .. CUTSCENE_VERSION .. ".dat"
+-- สั่งให้ทำงานทันที "แค่รอบเดียว" ทุกครั้งที่กดรันสคริปต์
+task.spawn(function()
+    PlayCutscene() 
+end)
+
+
+
 
 local function PlayCutscene()
     repeat task.wait() until LP.Character
