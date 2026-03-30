@@ -25,13 +25,15 @@ local CommF = game:GetService("ReplicatedStorage").Remotes.CommF_
 local RunService = game:GetService("RunService")
 
 -- [[ 🎬 CUTSCENE SYSTEM ]]
--- สั่งให้ทำงานทันที "แค่รอบเดียว" ทุกครั้งที่กดรันสคริปต์
 task.spawn(function()
     PlayCutscene() 
 end)
 
+-- (บรรทัดนี้ต้องไม่มี ) หรือขยะกั้น)
 
-
+local function PlayCutscene()
+    -- โค้ดข้างในฟังก์ชัน...
+    
 
 local function PlayCutscene()
     repeat task.wait() until LP.Character
